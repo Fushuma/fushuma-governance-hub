@@ -23,8 +23,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Install pnpm and tsx globally
-RUN npm install -g pnpm@10.4.1 tsx
+# Install pnpm, tsx, and wget for healthcheck
+RUN apk add --no-cache wget && \
+    npm install -g pnpm@10.4.1 tsx
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
@@ -55,7 +56,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
 # Start the application
 CMD ["pnpm", "start"]
