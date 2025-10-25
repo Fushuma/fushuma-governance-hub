@@ -1,0 +1,13 @@
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/
+@aragon/osx-commons-contracts/=lib/ve-governance/lib/osx-commons/contracts/
+@escrow/=lib/ve-governance/src/escrow/
+@voting/=lib/ve-governance/src/voting/
+@clock/=lib/ve-governance/src/clock/
+@curve/=lib/ve-governance/src/curve/
+@queue/=lib/ve-governance/src/queue/
+@lock/=lib/ve-governance/src/lock/
+@libs/=lib/ve-governance/src/libs/
+@delegation/=lib/ve-governance/src/delegation/
+forge-std/=lib/forge-std/src/
+

@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "outDir": "./dist/server",
+    "rootDir": "./server",
+    "noEmit": false,
+    "declaration": true
+  },
+  "include": [
+    "server/**/*.ts",
+    "shared/**/*.ts",
+    "drizzle/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "client",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
+}
+
