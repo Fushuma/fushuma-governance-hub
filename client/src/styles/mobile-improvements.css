@@ -1,0 +1,282 @@
+/**
+ * Mobile-First Responsive Improvements
+ * Enhances the governance hub experience on mobile devices
+ */
+
+/* Base mobile optimizations */
+@media (max-width: 768px) {
+  /* Improve touch targets */
+  button,
+  a,
+  input,
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better spacing for mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Stack cards vertically */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Improve table responsiveness */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better modal sizing */
+  [role="dialog"] {
+    max-width: 95vw;
+    max-height: 90vh;
+    margin: 1rem;
+  }
+
+  /* Improve form layouts */
+  form .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Better navigation */
+  nav {
+    flex-direction: column;
+  }
+
+  /* Improve card layouts */
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  /* Better typography */
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Improve button groups */
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .button-group button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Better stats display */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Improve tabs */
+  [role="tablist"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  [role="tab"] {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+/* Improve governance-specific components */
+@media (max-width: 768px) {
+  /* Proposal cards */
+  .proposal-card {
+    padding: 1rem;
+  }
+
+  .proposal-card .flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .proposal-card .actions {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  /* Voting interface */
+  .voting-options {
+    flex-direction: column;
+  }
+
+  .voting-option {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  /* veNFT cards */
+  .venft-card {
+    padding: 1rem;
+  }
+
+  .venft-card .stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Dashboard metrics */
+  .metric-card {
+    padding: 1rem;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+  }
+
+  /* Grant cards */
+  .grant-card {
+    padding: 1rem;
+  }
+
+  .grant-card .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .grant-card .amount {
+    margin-top: 0.5rem;
+  }
+
+  /* Proposal wizard */
+  .wizard-steps {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .wizard-step {
+    min-width: 120px;
+  }
+
+  /* Analytics charts */
+  .chart-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chart-container canvas {
+    min-width: 300px;
+  }
+}
+
+/* Improve touch interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  *:hover {
+    /* Disable hover-only effects */
+  }
+
+  /* Improve button feedback */
+  button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+
+  /* Better dropdown menus */
+  [role="menu"] {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 70vh;
+    border-radius: 1rem 1rem 0 0;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode mobile optimizations */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  /* Reduce eye strain on mobile */
+  body {
+    background-color: #0a0a0a;
+  }
+
+  .card {
+    background-color: #1a1a1a;
+  }
+}
+
+/* Print styles for mobile */
+@media print {
+  /* Hide navigation and interactive elements */
+  nav,
+  button,
+  .actions {
+    display: none !important;
+  }
+
+  /* Optimize for printing */
+  * {
+    background: white !important;
+    color: black !important;
+  }
+
+  .card {
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+  }
+}
+
+/* PWA-specific styles */
+@media (display-mode: standalone) {
+  /* Add safe area padding for notched devices */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Adjust header for PWA */
+  header {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+}
+

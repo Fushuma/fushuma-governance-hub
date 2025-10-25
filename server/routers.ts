@@ -7,6 +7,7 @@ import { ratesRouter } from "./routers/rates";
 import { encryptionRouter } from "./routers/encryption";
 import { blockchainRouter } from "./routers/blockchain";
 import { analyticsRouter } from "./routers/analytics";
+import { githubRouter } from "./routers/github";
 import { z } from "zod";
 import {
   generateNonce,
@@ -42,6 +43,7 @@ export const appRouter = router({
   encryption: encryptionRouter,
   blockchain: blockchainRouter,
   analytics: analyticsRouter,
+  github: githubRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
