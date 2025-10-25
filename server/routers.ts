@@ -8,6 +8,9 @@ import { encryptionRouter } from "./routers/encryption";
 import { blockchainRouter } from "./routers/blockchain";
 import { analyticsRouter } from "./routers/analytics";
 import { githubRouter } from "./routers/github";
+import { epochRouter } from "./routers/epoch";
+import { gaugeRouter } from "./routers/gauge";
+import { newsRouter as newsRouterV2 } from "./routers/news";
 import { z } from "zod";
 import {
   generateNonce,
@@ -44,6 +47,9 @@ export const appRouter = router({
   blockchain: blockchainRouter,
   analytics: analyticsRouter,
   github: githubRouter,
+  epoch: epochRouter,
+  gauge: gaugeRouter,
+  newsV2: newsRouterV2,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
