@@ -68,5 +68,19 @@ interface IVotingEscrow {
      * @param _tokenId ID of the veNFT
      */
     function completeExit(uint256 _tokenId) external;
+
+    /**
+     * @notice Get owner of a veNFT
+     * @param _tokenId ID of the veNFT
+     * @return Owner address
+     */
+    function ownerOf(uint256 _tokenId) external view returns (address);
+
+    /**
+     * @notice Get voting power of a veNFT (alias for votingPower)
+     * @param _tokenId ID of the veNFT
+     * @return Voting power
+     */
+    function getVotingPower(uint256 _tokenId) external view returns (uint256);
 }
 
