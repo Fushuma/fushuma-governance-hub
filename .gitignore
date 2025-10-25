@@ -66,3 +66,16 @@ sandbox.txt
 .user_env
 upload/
 
+
+# TypeScript build artifacts
+*.d.ts
+*.js
+*.js.map
+!vite.config.ts
+!ecosystem.config.js
+!vitest.config.ts
+!vitest.setup.ts
+!.eslintrc.js
+
+# Test scripts
+test-deployment.sh

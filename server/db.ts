@@ -1,5 +1,6 @@
 import { eq, and, desc, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import * as schema from "../drizzle/schema";
 import { 
   InsertUser, users,
   launchpadProjects, InsertLaunchpadProject,
@@ -20,7 +21,7 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = drizzle(process.env.DATABASE_URL, { schema });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -30,7 +31,7 @@ export async function getDb() {
 }
 
 // Export synchronous db instance for services (assumes DB is already initialized)
-export const db = drizzle(process.env.DATABASE_URL || 'mysql://root:password@localhost:3306/fushuma_governance');
+export const db = drizzle(process.env.DATABASE_URL || 'mysql://root:password@localhost:3306/fushuma_governance', { schema });
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {

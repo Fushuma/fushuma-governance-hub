@@ -31,7 +31,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-fushuma_password}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "${DB_PORT:-3306}:3306"
     networks:

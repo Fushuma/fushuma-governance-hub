@@ -5,9 +5,11 @@
     "moduleResolution": "node",
     "target": "ES2022",
     "outDir": "./dist/server",
-    "rootDir": "./server",
     "noEmit": false,
-    "declaration": true
+    "declaration": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "strict": false
   },
   "include": [
     "server/**/*.ts",
