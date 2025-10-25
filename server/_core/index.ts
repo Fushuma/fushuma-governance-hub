@@ -51,12 +51,14 @@ async function startServer() {
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: [
+                  "'unsafe-inline'",
           "'self'",
           "https://fonts.googleapis.com",
           // Allow unsafe-inline only in development
           ...(isDevelopment ? ["'unsafe-inline'"] : []),
         ],
         scriptSrc: [
+                  "'unsafe-inline'",
           "'self'",
           // Allow unsafe-eval only in development for HMR
           ...(isDevelopment ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
