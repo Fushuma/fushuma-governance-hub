@@ -21,7 +21,7 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL, { schema });
+      _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -31,7 +31,7 @@ export async function getDb() {
 }
 
 // Export synchronous db instance for services (assumes DB is already initialized)
-export const db = drizzle(process.env.DATABASE_URL || 'mysql://root:password@localhost:3306/fushuma_governance', { schema });
+export const db = drizzle(process.env.DATABASE_URL || 'mysql://root:password@localhost:3306/fushuma_governance', { schema, mode: 'default' });
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
@@ -250,7 +250,7 @@ export async function upvoteCommunityContent(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const content = await db.select().from(communityContent).where(eq(communityContent.id, id)).limit(1);
-  if (content.length > 0) {
+  if (content.length > 0 && content[0]) {
     await db.update(communityContent).set({ upvotes: (content[0].upvotes || 0) + 1 }).where(eq(communityContent.id, id));
   }
 }

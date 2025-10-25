@@ -4,7 +4,7 @@ import { db } from "../db";
 import { blockchainEvents, indexerState } from "../../drizzle/schema";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { getIndexer } from "../services/indexer";
-import { ethereumAddressSchema, paginationSchema } from "../validation";
+import { ethereumAddressSchema } from "../validation";
 
 export const blockchainRouter = router({
   // Get blockchain events with filtering

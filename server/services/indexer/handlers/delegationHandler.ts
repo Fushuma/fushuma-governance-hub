@@ -63,7 +63,7 @@ export async function handleDelegateVotesChanged(log: Log) {
       return;
     }
 
-    const { delegate, previousBalance, newBalance } = args;
+    const { delegate, newBalance } = args;
 
     // Ensure delegate profile exists
     await ensureDelegateExists(delegate);
@@ -106,11 +106,13 @@ async function updateDelegateStats(delegateAddress: string) {
 
   const stats = result[0];
 
-  await db.update(delegates)
-    .set({
-      delegatorCount: stats.count || 0,
-      votingPower: stats.totalAmount || 0,
-    })
-    .where(eq(delegates.address, delegateAddress));
+  if (stats) {
+    await db.update(delegates)
+      .set({
+        delegatorCount: stats.count || 0,
+        votingPower: stats.totalAmount || 0,
+      })
+      .where(eq(delegates.address, delegateAddress));
+  }
 }
 

@@ -1,6 +1,6 @@
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'crypto';
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { keccak256, toHex, fromHex } from 'viem';
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { privateKeyToAccount } from 'viem/accounts';
+import { keccak256, toHex } from 'viem';
 
 /**
  * Proposal Encryption Service

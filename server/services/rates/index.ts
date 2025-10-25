@@ -1,4 +1,4 @@
-import { createPublicClient, http, formatUnits } from 'viem';
+import { createPublicClient, http } from 'viem';
 import { db } from '../../db';
 import { tokenPrices } from '../../../drizzle/schema';
 import { logger } from '../../_core/logger';

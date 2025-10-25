@@ -2,7 +2,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import { db } from "../db";
 import { delegates, delegations } from "../../drizzle/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { ethereumAddressSchema, paginationSchema } from "../validation";
 
 export const delegatesRouter = router({

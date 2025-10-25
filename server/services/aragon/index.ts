@@ -1,5 +1,4 @@
 import { Client, Context, ContextParams } from '@aragon/sdk-client';
-import { Client as ClientCommon } from '@aragon/sdk-client-common';
 import { logger } from '../../_core/logger';
 
 /**

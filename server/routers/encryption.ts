@@ -6,7 +6,6 @@ import {
   getSignatureMessage,
   hashMetadata,
   type ProposalMetadata,
-  type ProposalAction,
 } from "../services/encryption/proposalEncryption";
 import { ethereumAddressSchema } from "../validation";
 

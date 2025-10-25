@@ -191,8 +191,6 @@ export class BlockchainIndexer {
   }
 
   private getEventType(log: Log): string | null {
-    const topic = log.topics[0];
-    
     // Match topic hash to event name
     for (const [name, event] of Object.entries(GOVERNANCE_EVENTS)) {
       // Simple topic matching - in production, use proper ABI decoding
