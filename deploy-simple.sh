@@ -69,8 +69,8 @@ log_info "=== STEP 1: Configuration ==="
 echo ""
 
 # Pre-configured values
-WALLET_ADDRESS="0xf4C3914B127571fDfDdB3B5caCE6a9428DB0183b"
-log_info "Using wallet address as DAO: $WALLET_ADDRESS"
+DAO_ADDRESS="0xC09ae6b9dcC5d5F66b4e3E30804677B224f2436F"
+log_info "Using multisig address as DAO: $DAO_ADDRESS"
 
 # Domain configuration
 read -p "Enter your domain for the governance hub (e.g., governance.fushuma.com): " DOMAIN
@@ -244,7 +244,7 @@ cat > .env << EOF
 PRIVATE_KEY=$PRIVATE_KEY
 RPC_URL=https://rpc.fushuma.com
 CHAIN_ID=121224
-DAO_ADDRESS=$WALLET_ADDRESS
+DAO_ADDRESS=$DAO_ADDRESS
 ESCROW_ADDRESS=$ESCROW_ADDRESS
 CLOCK_ADDRESS=$CLOCK_ADDRESS
 ETHERSCAN_API_KEY=
@@ -489,12 +489,12 @@ echo "📍 Installation Directory: $INSTALL_DIR/fushuma-governance-hub"
 echo "🔗 Application URL (after Cloudflare setup): https://$DOMAIN"
 echo "📜 Governor Contract: $GOVERNOR_ADDRESS"
 echo "👥 Council Contract: $COUNCIL_ADDRESS"
-echo "👤 DAO Address (Your Wallet): $WALLET_ADDRESS"
+echo "👤 DAO Address (Multisig): $DAO_ADDRESS"
 echo ""
 log_info "=== Important Notes ==="
 echo ""
 log_warning "This is a simplified deployment using:"
-echo "  - Your wallet address as DAO"
+echo "  - Your multisig address as DAO"
 echo "  - Placeholder VotingEscrow contract"
 echo "  - Placeholder Clock contract"
 echo ""
