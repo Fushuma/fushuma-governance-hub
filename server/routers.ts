@@ -9,6 +9,17 @@ import { blockchainRouter } from "./routers/blockchain";
 import { analyticsRouter } from "./routers/analytics";
 import { z } from "zod";
 import {
+  generateNonce,
+  generateSignInMessage,
+  verifyNonce,
+  verifyWalletSignature,
+  isValidEthereumAddress,
+} from "./_core/web3Auth";
+import { upsertUser } from "./db";
+import { SignJWT } from "jose";
+import { ONE_YEAR_MS } from "@shared/const";
+import { ENV } from "./_core/env";
+import {
   ethereumAddressSchema,
   urlSchema,
   fundingAmountSchema,
@@ -41,6 +52,88 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    
+    // Web3 Authentication
+    getNonce: publicProcedure
+      .input(z.object({ address: z.string() }))
+      .mutation(({ input }) => {
+        const { address } = input;
+        
+        if (!isValidEthereumAddress(address)) {
+          throw new Error("Invalid Ethereum address");
+        }
+        
+        const nonce = generateNonce(address);
+        const message = generateSignInMessage(address, nonce);
+        
+        return {
+          nonce,
+          message,
+        };
+      }),
+    
+    verifySignature: publicProcedure
+      .input(z.object({
+        address: z.string(),
+        signature: z.string(),
+        message: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { address, signature, message } = input;
+        
+        if (!isValidEthereumAddress(address)) {
+          throw new Error("Invalid Ethereum address");
+        }
+        
+        // Verify signature
+        const isValidSignature = verifyWalletSignature(message, signature, address);
+        if (!isValidSignature) {
+          throw new Error("Invalid signature");
+        }
+        
+        // Extract nonce from message
+        const nonceMatch = message.match(/Nonce: ([a-f0-9]+)/);
+        if (!nonceMatch) {
+          throw new Error("Invalid message format");
+        }
+        const nonce = nonceMatch[1];
+        
+        // Verify nonce
+        const isValidNonce = verifyNonce(address, nonce);
+        if (!isValidNonce) {
+          throw new Error("Invalid or expired nonce");
+        }
+        
+        // Create or update user
+        await upsertUser({
+          openId: address.toLowerCase(),
+          name: `${address.slice(0, 6)}...${address.slice(-4)}`,
+          email: null,
+          loginMethod: "wallet",
+          lastSignedIn: new Date(),
+        });
+        
+        // Create session token
+        const secret = new TextEncoder().encode(ENV.jwtSecret);
+        const sessionToken = await new SignJWT({
+          openId: address.toLowerCase(),
+          appId: ENV.appId,
+          name: `${address.slice(0, 6)}...${address.slice(-4)}`,
+        })
+          .setProtectedHeader({ alg: "HS256" })
+          .setIssuedAt()
+          .setExpirationTime(Math.floor(Date.now() / 1000) + ONE_YEAR_MS / 1000)
+          .sign(secret);
+        
+        // Set session cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        
+        return {
+          success: true,
+          address: address.toLowerCase(),
+        };
+      }),
   }),
 
   // Launchpad router with validation and pagination
