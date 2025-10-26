@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Wallet, Mail } from "lucide-react";
 import { useAccount, useSignMessage, useConnect } from "wagmi";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface AuthModalProps {
   open: boolean;
@@ -19,6 +20,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const { connect, connectors } = useConnect();
+  
+  const getNonceMutation = trpc.auth.getNonce.useMutation();
+  const verifySignatureMutation = trpc.auth.verifySignature.useMutation();
 
   const handleWalletAuth = async () => {
     try {
@@ -33,44 +37,32 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         return;
       }
 
-      // Get nonce from server
-      const nonceResponse = await fetch('/api/auth/wallet/nonce', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address }),
-      });
-
-      if (!nonceResponse.ok) {
-        throw new Error('Failed to get nonce');
+      if (!address) {
+        toast.error('No wallet address found');
+        return;
       }
 
-      const { nonce } = await nonceResponse.json();
+      // Get nonce from server using tRPC
+      const { nonce, message } = await getNonceMutation.mutateAsync({ 
+        address 
+      });
 
       // Sign message
-      const message = `Sign this message to authenticate with Fushuma Governance Hub.\n\nNonce: ${nonce}`;
       const signature = await signMessageAsync({ message });
 
-      // Verify signature and login
-      const loginResponse = await fetch('/api/auth/wallet/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: address,
-          signature,
-          message,
-        }),
+      // Verify signature and login using tRPC
+      await verifySignatureMutation.mutateAsync({
+        address,
+        signature,
+        message,
       });
-
-      if (!loginResponse.ok) {
-        throw new Error('Authentication failed');
-      }
 
       toast.success('Successfully authenticated!');
       onOpenChange(false);
       window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Wallet auth error:', error);
-      toast.error('Failed to authenticate with wallet');
+      toast.error(error?.message || 'Failed to authenticate with wallet');
     } finally {
       setIsLoading(false);
     }
@@ -86,18 +78,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
     try {
       setIsLoading(true);
+      toast.info('Email authentication is not yet configured. Please use wallet authentication.');
+      
+      // TODO: Implement email magic link when SMTP is configured
+      // const response = await fetch('/api/auth/email/send-magic-link', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email }),
+      // });
 
-      const response = await fetch('/api/auth/email/send-magic-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send magic link');
-      }
-
-      toast.success('Magic link sent! Check your email.');
       setEmail('');
     } catch (error) {
       console.error('Email auth error:', error);
@@ -106,8 +95,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       setIsLoading(false);
     }
   };
-
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -164,16 +151,14 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  We'll send you a magic link to sign in
+                  Email authentication is currently being configured. Please use wallet authentication.
                 </p>
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? 'Sending...' : 'Send Magic Link'}
+              <Button type="submit" disabled={true} className="w-full">
+                Coming Soon
               </Button>
             </form>
           </TabsContent>
-
-
         </Tabs>
       </DialogContent>
     </Dialog>
