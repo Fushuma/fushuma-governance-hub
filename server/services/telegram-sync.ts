@@ -188,37 +188,91 @@ class TelegramSyncService {
   }
 
   /**
-   * Fetch messages from Telegram channel using direct channel access
-   * This uses the getChat and getChatHistory methods
+   * Fetch messages from public Telegram channel by scraping the web page
+   * This works for public channels without needing bot admin access
    */
-  private async fetchMessagesFromChannel(limit: number = 10): Promise<TelegramMessage[]> {
-    if (!this.botToken) {
-      throw new Error('Telegram bot token not configured');
-    }
-
+  private async fetchMessagesFromChannel(limit: number = 50): Promise<TelegramMessage[]> {
     try {
-      // First, get the chat info to get the chat ID
-      const chatUrl = `https://api.telegram.org/bot${this.botToken}/getChat`;
-      const chatParams = new URLSearchParams({
-        chat_id: this.channelId,
-      });
-
-      const chatResponse = await fetch(`${chatUrl}?${chatParams}`);
-      const chatData = await chatResponse.json();
-
-      if (!chatData.ok) {
-        console.error('Error getting chat info:', chatData.description);
-        // Fall back to getUpdates method
-        return await this.fetchMessagesFromUpdates(limit);
+      // Use the public channel preview URL
+      const channelUsername = this.channelId.replace('@', '');
+      const url = `https://t.me/s/${channelUsername}`;
+      
+      console.log(`Fetching messages from ${url}`);
+      
+      const response = await fetch(url);
+      const html = await response.text();
+      
+      // Parse HTML to extract messages
+      const messages: TelegramMessage[] = [];
+      
+      // Match message blocks in the HTML
+      const messageRegex = /<div class="tgme_widget_message[^"]*"[^>]*data-post="[^"]+"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
+      const matches = html.matchAll(messageRegex);
+      
+      for (const match of matches) {
+        const messageHtml = match[0];
+        
+        // Extract message ID
+        const idMatch = messageHtml.match(/data-post="[^/]+\/(\d+)"/);
+        if (!idMatch) continue;
+        const messageId = idMatch[1];
+        
+        // Extract text content
+        const textMatch = messageHtml.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+        let text = '';
+        if (textMatch) {
+          // Remove HTML tags and decode entities
+          text = textMatch[1]
+            .replace(/<br\s*\/?>/g, '\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .trim();
+        }
+        
+        // Extract date
+        const dateMatch = messageHtml.match(/<time[^>]*datetime="([^"]+)"/);
+        const date = dateMatch ? new Date(dateMatch[1]) : new Date();
+        
+        // Extract media (photos)
+        const media: any[] = [];
+        const photoMatches = messageHtml.matchAll(/<a[^>]*class="tgme_widget_message_photo_wrap[^"]*"[^>]*style="[^"]*background-image:url\('([^']+)'\)"/g);
+        for (const photoMatch of photoMatches) {
+          media.push({ type: 'photo', url: photoMatch[1] });
+        }
+        
+        // Extract video
+        const videoMatch = messageHtml.match(/<video[^>]*src="([^"]+)"/);
+        if (videoMatch) {
+          const thumbnailMatch = messageHtml.match(/<video[^>]*poster="([^"]+)"/);
+          media.push({ 
+            type: 'video', 
+            url: videoMatch[1],
+            thumbnail: thumbnailMatch ? thumbnailMatch[1] : null
+          });
+        }
+        
+        if (text || media.length > 0) {
+          messages.push({
+            id: messageId,
+            date,
+            text,
+            author: 'Fushuma Team',
+            media: media.length > 0 ? media : undefined,
+            links: this.extractLinks(text),
+          });
+        }
+        
+        if (messages.length >= limit) break;
       }
-
-      // Note: Bot API doesn't provide getChatHistory directly
-      // We need to use getUpdates for channel posts
-      return await this.fetchMessagesFromUpdates(limit);
+      
+      console.log(`Fetched ${messages.length} messages from Telegram`);
+      return messages;
     } catch (error) {
-      console.error('Error fetching from channel:', error);
-      // Fall back to getUpdates
-      return await this.fetchMessagesFromUpdates(limit);
+      console.error('Error fetching from public channel:', error);
+      return [];
     }
   }
 
