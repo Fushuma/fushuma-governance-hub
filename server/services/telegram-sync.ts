@@ -86,6 +86,28 @@ class TelegramSyncService {
   }
 
   /**
+   * Get file URL from Telegram
+   */
+  private async getFileUrl(fileId: string): Promise<string | null> {
+    if (!this.botToken) return null;
+
+    try {
+      const response = await fetch(
+        `https://api.telegram.org/bot${this.botToken}/getFile?file_id=${fileId}`
+      );
+      const data = await response.json();
+
+      if (data.ok && data.result.file_path) {
+        return `https://api.telegram.org/file/bot${this.botToken}/${data.result.file_path}`;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting file URL:', error);
+      return null;
+    }
+  }
+
+  /**
    * Fetch messages from Telegram channel using getUpdates
    * This method captures channel posts if the bot is added as admin
    */
@@ -113,12 +135,46 @@ class TelegramSyncService {
       for (const update of data.result) {
         if (update.channel_post) {
           const post = update.channel_post;
+          
+          // Extract media URLs
+          const media: any[] = [];
+          
+          // Handle photos
+          if (post.photo && post.photo.length > 0) {
+            // Get the largest photo size
+            const largestPhoto = post.photo[post.photo.length - 1];
+            const photoUrl = await this.getFileUrl(largestPhoto.file_id);
+            if (photoUrl) {
+              media.push({ type: 'photo', url: photoUrl });
+            }
+          }
+          
+          // Handle videos
+          if (post.video) {
+            const videoUrl = await this.getFileUrl(post.video.file_id);
+            if (videoUrl) {
+              media.push({ 
+                type: 'video', 
+                url: videoUrl,
+                thumbnail: post.video.thumbnail ? await this.getFileUrl(post.video.thumbnail.file_id) : null
+              });
+            }
+          }
+          
+          // Handle animations (GIFs)
+          if (post.animation) {
+            const animationUrl = await this.getFileUrl(post.animation.file_id);
+            if (animationUrl) {
+              media.push({ type: 'animation', url: animationUrl });
+            }
+          }
+          
           messages.push({
             id: post.message_id.toString(),
             date: new Date(post.date * 1000),
             text: post.text || post.caption || '',
             author: post.author_signature || 'Fushuma Team',
-            media: post.photo || post.video ? [post.photo || post.video] : undefined,
+            media: media.length > 0 ? media : undefined,
             links: this.extractLinks(post.text || post.caption || ''),
           });
         }
@@ -263,7 +319,7 @@ class TelegramSyncService {
 
           console.log(`Syncing message ${message.id}: ${parsed.title.substring(0, 50)}...`);
 
-          // Insert into database with full content
+          // Insert into database with full content and media
           await db.insert(news).values({
             title: parsed.title,
             content: parsed.content, // Full message body
@@ -277,6 +333,10 @@ class TelegramSyncService {
             tags: parsed.tags,
             isPinned: false,
             viewCount: 0,
+            metadata: {
+              media: message.media || [],
+              links: message.links || [],
+            },
           });
 
           synced++;

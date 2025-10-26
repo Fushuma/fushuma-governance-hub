@@ -76,6 +76,44 @@ export default function News() {
                 </CardHeader>
                 
                 <CardContent>
+                  {/* Media - Display images and videos */}
+                  {item.metadata && (item.metadata as any).media && (item.metadata as any).media.length > 0 && (
+                    <div className="mb-4 space-y-2">
+                      {(item.metadata as any).media.map((mediaItem: any, index: number) => (
+                        <div key={index}>
+                          {mediaItem.type === 'photo' && (
+                            <img 
+                              src={mediaItem.url} 
+                              alt="Telegram post image" 
+                              className="w-full rounded-lg max-h-96 object-contain bg-gray-100"
+                            />
+                          )}
+                          {mediaItem.type === 'video' && (
+                            <video 
+                              controls 
+                              className="w-full rounded-lg max-h-96"
+                              poster={mediaItem.thumbnail}
+                            >
+                              <source src={mediaItem.url} type="video/mp4" />
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                          {mediaItem.type === 'animation' && (
+                            <video 
+                              autoPlay 
+                              loop 
+                              muted 
+                              className="w-full rounded-lg max-h-96"
+                            >
+                              <source src={mediaItem.url} type="video/mp4" />
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   {/* Full Content - Display the complete message body */}
                   {item.content && (
                     <div className="prose prose-sm max-w-none mb-4">
