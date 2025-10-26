@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { ExternalLink, Calendar, User } from "lucide-react";
 
 export default function News() {
-  const { data: news, isLoading } = trpc.news.list.useQuery();
+  const { data: news, isLoading } = trpc.news.list.useQuery({});
 
   const getSourceColor = (source: string) => {
     switch (source) {
