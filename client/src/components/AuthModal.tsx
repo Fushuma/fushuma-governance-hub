@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Mail, Chrome } from "lucide-react";
+import { Wallet, Mail } from "lucide-react";
 import { useAccount, useSignMessage, useConnect } from "wagmi";
 import { toast } from "sonner";
 
@@ -107,9 +107,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
   };
 
-  const handleGoogleAuth = () => {
-    window.location.href = '/api/auth/google';
-  };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -122,7 +120,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         </DialogHeader>
 
         <Tabs defaultValue="wallet" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="wallet">
               <Wallet className="w-4 h-4 mr-2" />
               Wallet
@@ -130,10 +128,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             <TabsTrigger value="email">
               <Mail className="w-4 h-4 mr-2" />
               Email
-            </TabsTrigger>
-            <TabsTrigger value="google">
-              <Chrome className="w-4 h-4 mr-2" />
-              Google
             </TabsTrigger>
           </TabsList>
 
@@ -179,22 +173,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </form>
           </TabsContent>
 
-          <TabsContent value="google" className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Sign in with your Google account
-              </p>
-            </div>
-            <Button
-              onClick={handleGoogleAuth}
-              disabled={isLoading}
-              className="w-full"
-              variant="outline"
-            >
-              <Chrome className="w-4 h-4 mr-2" />
-              Continue with Google
-            </Button>
-          </TabsContent>
+
         </Tabs>
       </DialogContent>
     </Dialog>

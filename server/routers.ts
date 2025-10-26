@@ -288,6 +288,20 @@ export const appRouter = router({
         const { getGrantComments } = await import('./db');
         return getGrantComments(input.grantId);
       }),
+    addComment: protectedProcedure
+      .input(z.object({ 
+        grantId: z.number().int().positive(),
+        body: z.string().min(1).max(10000)
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { addGrantComment } = await import('./db');
+        return addGrantComment({
+          grantId: input.grantId,
+          author: ctx.user.username || ctx.user.walletAddress || 'Anonymous',
+          authorAvatar: ctx.user.avatar || null,
+          body: input.body
+        });
+      }),
   }),
 
   // News router with validation

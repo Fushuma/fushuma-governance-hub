@@ -199,6 +199,27 @@ export async function getGrantComments(grantId: number) {
     .orderBy(grantComments.createdAt);
 }
 
+export async function addGrantComment(comment: {
+  grantId: number;
+  author: string;
+  authorAvatar: string | null;
+  body: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  const [result] = await db.insert(grantComments).values({
+    grantId: comment.grantId,
+    githubCommentId: null,
+    author: comment.author,
+    authorAvatar: comment.authorAvatar,
+    body: comment.body,
+    reactions: null
+  });
+  
+  return result;
+}
+
 // News Feed
 export async function getAllNewsFeed(limit = 50) {
   const db = await getDb();

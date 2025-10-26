@@ -1,19 +1,24 @@
-
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { ExternalLink, MessageSquare, Calendar, DollarSign, GitBranch } from "lucide-react";
+import { ExternalLink, MessageSquare, Calendar, DollarSign, GitBranch, Send } from "lucide-react";
 import { useParams, useLocation } from "wouter";
 import ReactMarkdown from "react-markdown";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 export default function GrantDetailEnhanced() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+  const [commentText, setCommentText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const { data: grant, isLoading } = trpc.grants.getById.useQuery(
     { id: Number(id) },
     { enabled: !!id }
@@ -22,10 +27,12 @@ export default function GrantDetailEnhanced() {
     { grantId: Number(id) },
     { enabled: !!id }
   );
-  const { data: comments } = trpc.grants.getComments.useQuery(
+  const { data: comments, refetch: refetchComments } = trpc.grants.getComments.useQuery(
     { grantId: Number(id) },
     { enabled: !!id }
   );
+  const { data: user } = trpc.auth.me.useQuery();
+  const addCommentMutation = trpc.grants.addComment.useMutation();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -44,6 +51,28 @@ export default function GrantDetailEnhanced() {
       return JSON.parse(reactionsStr);
     } catch {
       return null;
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!commentText.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await addCommentMutation.mutateAsync({
+        grantId: Number(id),
+        body: commentText
+      });
+      toast.success('Comment added successfully!');
+      setCommentText('');
+      refetchComments();
+    } catch (error) {
+      toast.error('Failed to add comment');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -211,15 +240,46 @@ export default function GrantDetailEnhanced() {
           )}
 
           {/* Community Discussion */}
-          {comments && comments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
-                  Community Discussion ({comments.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Community Discussion ({comments?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Add Comment Form (for logged-in users) */}
+              {user && (
+                <div className="mb-6 pb-6 border-b">
+                  <div className="flex gap-4">
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={user.avatar || undefined} />
+                      <AvatarFallback>{user.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-3">
+                      <Textarea
+                        placeholder="Add your comment..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        className="min-h-[100px]"
+                        disabled={isSubmitting}
+                      />
+                      <div className="flex justify-end">
+                        <Button
+                          onClick={handleAddComment}
+                          disabled={isSubmitting || !commentText.trim()}
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          {isSubmitting ? 'Posting...' : 'Post Comment'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Existing Comments */}
+              {comments && comments.length > 0 ? (
                 <div className="space-y-6">
                   {comments.map((comment, index) => {
                     const reactions = parseReactions(comment.reactions);
@@ -275,9 +335,13 @@ export default function GrantDetailEnhanced() {
                     );
                   })}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  No comments yet. {user ? 'Be the first to comment!' : 'Sign in to add a comment.'}
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
