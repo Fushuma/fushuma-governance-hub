@@ -7,11 +7,31 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, index, bigint, js
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
-  name: text("name"),
-  email: varchar("email", { length: 320 }),
+  // Legacy Manus OAuth (nullable for migration)
+  openId: varchar("openId", { length: 64 }).unique(),
   loginMethod: varchar("loginMethod", { length: 64 }),
+  
+  // Web3 wallet authentication
+  walletAddress: varchar("walletAddress", { length: 42 }).unique(),
+  
+  // Email/password authentication
+  email: varchar("email", { length: 320 }).unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }),
+  emailVerified: boolean("emailVerified").default(false),
+  
+  // Profile information
+  username: varchar("username", { length: 64 }).unique(),
+  displayName: varchar("displayName", { length: 128 }),
+  name: text("name"), // Legacy field
+  avatar: text("avatar"),
+  
+  // OAuth providers
+  googleId: varchar("googleId", { length: 255 }).unique(),
+  
+  // Authorization
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  
+  // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -19,6 +39,9 @@ export const users = mysqlTable("users", {
 }, (table) => ({
   roleIdx: index("idx_role").on(table.role),
   emailIdx: index("idx_email").on(table.email),
+  walletIdx: index("idx_wallet").on(table.walletAddress),
+  usernameIdx: index("idx_username").on(table.username),
+  googleIdx: index("idx_google").on(table.googleId),
 }));
 
 export type User = typeof users.$inferSelect;
@@ -334,4 +357,54 @@ export const tokenPrices = mysqlTable("token_prices", {
 
 export type TokenPrice = typeof tokenPrices.$inferSelect;
 export type InsertTokenPrice = typeof tokenPrices.$inferInsert;
+
+
+// Email Verification Tokens - for email verification
+export const emailVerificationTokens = mysqlTable("email_verification_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  tokenIdx: index("idx_token").on(table.token),
+  userIdx: index("idx_user").on(table.userId),
+  expiresIdx: index("idx_expires").on(table.expiresAt),
+}));
+
+export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+export type InsertEmailVerificationToken = typeof emailVerificationTokens.$inferInsert;
+
+// Password Reset Tokens - for password reset flow
+export const passwordResetTokens = mysqlTable("password_reset_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  usedAt: timestamp("usedAt"),
+}, (table) => ({
+  tokenIdx: index("idx_token").on(table.token),
+  userIdx: index("idx_user").on(table.userId),
+  expiresIdx: index("idx_expires").on(table.expiresAt),
+}));
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
+// Web3 Nonces - for SIWE (Sign-In with Ethereum) authentication
+export const web3Nonces = mysqlTable("web3_nonces", {
+  id: int("id").autoincrement().primaryKey(),
+  walletAddress: varchar("walletAddress", { length: 42 }).notNull(),
+  nonce: varchar("nonce", { length: 255 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  walletIdx: index("idx_wallet").on(table.walletAddress),
+  nonceIdx: index("idx_nonce").on(table.nonce),
+  expiresIdx: index("idx_expires").on(table.expiresAt),
+}));
+
+export type Web3Nonce = typeof web3Nonces.$inferSelect;
+export type InsertWeb3Nonce = typeof web3Nonces.$inferInsert;
 
