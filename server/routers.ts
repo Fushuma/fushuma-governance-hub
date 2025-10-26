@@ -282,6 +282,12 @@ export const appRouter = router({
         const { updateMilestoneStatus } = await import('./db');
         return updateMilestoneStatus(input.id, input.status, input.proofOfWork);
       }),
+    getComments: publicProcedure
+      .input(z.object({ grantId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const { getGrantComments } = await import('./db');
+        return getGrantComments(input.grantId);
+      }),
   }),
 
   // News router with validation

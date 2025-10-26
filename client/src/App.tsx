@@ -8,7 +8,7 @@ import Home from "./pages/Home";
 import Launchpad from "./pages/Launchpad";
 import LaunchpadDetail from "./pages/LaunchpadDetail";
 import Grants from "./pages/Grants";
-import GrantDetail from "./pages/GrantDetail";
+import GrantDetail from "./pages/GrantDetailEnhanced";
 import News from "./pages/News";
 import Ecosystem from "./pages/Ecosystem";
 import Community from "./pages/Community";

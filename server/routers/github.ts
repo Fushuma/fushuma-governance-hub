@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
-import { githubSync } from '../services/github-sync';
+import { enhancedGithubSync } from '../services/github-sync-enhanced';
 import { TRPCError } from '@trpc/server';
 
 export const githubRouter = router({
@@ -19,7 +19,7 @@ export const githubRouter = router({
       }
 
       try {
-        const result = await githubSync.syncAllGrants();
+        const result = await enhancedGithubSync.syncAllGrants();
         return {
           success: true,
           ...result,
@@ -62,7 +62,7 @@ export const githubRouter = router({
         // const isValid = verifyWebhookSignature(input.signature, payload);
         // if (!isValid) throw new Error('Invalid signature');
 
-        await githubSync.handleWebhook(input);
+        await enhancedGithubSync.handleWebhook(input);
         return { success: true };
       } catch (error) {
         console.error('Error handling webhook:', error);

@@ -58,10 +58,20 @@ export default function Grants() {
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <CardTitle className="text-2xl mb-2">{grant.title}</CardTitle>
+                        <div className="flex items-center gap-2 mb-2">
+                          {grant.githubIssueNumber && (
+                            <span className="text-xs text-muted-foreground">#{grant.githubIssueNumber}</span>
+                          )}
+                          <CardTitle className="text-2xl">{grant.title}</CardTitle>
+                        </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {grant.description}
                         </p>
+                        {grant.githubCommentCount && grant.githubCommentCount > 0 && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            💬 {grant.githubCommentCount} comments
+                          </p>
+                        )}
                       </div>
                       <div className="ml-4 text-right">
                         <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(grant.status)}`}>

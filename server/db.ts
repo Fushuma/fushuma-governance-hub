@@ -6,6 +6,7 @@ import {
   launchpadProjects, InsertLaunchpadProject,
   developmentGrants, InsertDevelopmentGrant,
   grantMilestones, InsertGrantMilestone,
+  grantComments,
   newsFeed, InsertNewsFeedItem,
   ecosystemProjects, InsertEcosystemProject,
   communityContent, InsertCommunityContent,
@@ -187,6 +188,15 @@ export async function updateMilestoneStatus(id: number, status: string, proofOfW
   if (proofOfWork) updateData.proofOfWork = proofOfWork;
   if (status === 'approved') updateData.completedAt = new Date();
   await db.update(grantMilestones).set(updateData).where(eq(grantMilestones.id, id));
+}
+
+// Grant Comments
+export async function getGrantComments(grantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(grantComments)
+    .where(eq(grantComments.grantId, grantId))
+    .orderBy(grantComments.createdAt);
 }
 
 // News Feed

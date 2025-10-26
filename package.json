@@ -98,6 +98,7 @@
     "rate-limit-redis": "^4.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "recharts": "^2.15.1",
     "sonner": "^1.7.4",
     "superjson": "^2.2.2",
