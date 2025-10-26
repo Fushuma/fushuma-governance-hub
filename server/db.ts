@@ -1,6 +1,7 @@
 import { eq, and, desc, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import * as schema from "../drizzle/schema";
+import * as schemaPhase2 from "../drizzle/schema-phase2";
 import { 
   InsertUser, users,
   launchpadProjects, InsertLaunchpadProject,
@@ -31,8 +32,11 @@ export async function getDb() {
   return _db;
 }
 
+// Merge both schemas
+const fullSchema = { ...schema, ...schemaPhase2 };
+
 // Export synchronous db instance for services (assumes DB is already initialized)
-export const db = drizzle(process.env.DATABASE_URL!, { schema, mode: 'default' });
+export const db = drizzle(process.env.DATABASE_URL!, { schema: fullSchema, mode: 'default' });
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
