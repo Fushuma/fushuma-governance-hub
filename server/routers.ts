@@ -49,7 +49,7 @@ export const appRouter = router({
   github: githubRouter,
   epoch: epochRouter,
   gauge: gaugeRouter,
-  newsV2: newsRouterV2,
+  news: newsRouterV2,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
@@ -304,31 +304,7 @@ export const appRouter = router({
       }),
   }),
 
-  // News router with validation
-  news: router({
-    list: publicProcedure
-      .input(paginationSchema.optional())
-      .query(async ({ input }) => {
-        const { getAllNewsFeed } = await import('./db');
-        const limit = input?.limit || 50;
-        return getAllNewsFeed(limit);
-      }),
-    create: protectedProcedure
-      .input(z.object({
-        title: titleSchema,
-        content: z.string().max(50000).optional(),
-        excerpt: z.string().max(500).optional(),
-        source: z.enum(["official", "telegram", "github", "partner", "community"]),
-        category: z.string().max(100).optional(),
-        sourceUrl: urlSchema.optional(),
-        imageUrl: urlSchema.optional(),
-        publishedAt: z.date(),
-      }))
-      .mutation(async ({ input }) => {
-        const { createNewsFeedItem } = await import('./db');
-        return createNewsFeedItem(input);
-      }),
-  }),
+  // Old news router removed - now using newsRouterV2 from routers/news.ts
 
   // Ecosystem router with validation and pagination
   ecosystem: router({
