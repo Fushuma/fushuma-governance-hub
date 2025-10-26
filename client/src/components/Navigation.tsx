@@ -1,16 +1,18 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl, APP_TITLE } from "@/const";
+import { APP_TITLE } from "@/const";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun, Menu } from "lucide-react";
 import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { AuthModal } from "@/components/AuthModal";
 
 export default function Navigation() {
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -71,10 +73,12 @@ export default function Navigation() {
                 Sign Out
               </Button>
             ) : (
-              <Button size="sm" asChild>
-                <a href={getLoginUrl()}>Sign In</a>
+              <Button size="sm" onClick={() => setAuthModalOpen(true)}>
+                Sign In
               </Button>
             )}
+            
+            <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
 
             <Button
               variant="ghost"
