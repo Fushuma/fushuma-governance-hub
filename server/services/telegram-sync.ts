@@ -55,6 +55,12 @@ class TelegramSyncService {
     // Initialize sync state in database
     await this.initializeSyncState();
 
+    // Run initial sync immediately
+    console.log('Running initial Telegram sync...');
+    await this.syncMessages().catch(err => {
+      console.error('Initial sync failed:', err);
+    });
+
     if (this.autoSyncEnabled) {
       this.startAutoSync();
     }
