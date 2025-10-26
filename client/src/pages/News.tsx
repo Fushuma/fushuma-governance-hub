@@ -1,7 +1,7 @@
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Calendar, User } from "lucide-react";
 
 export default function News() {
   const { data: news, isLoading } = trpc.news.list.useQuery();
@@ -14,6 +14,17 @@ export default function News() {
       case "partner": return "bg-green-500/20 text-green-400";
       default: return "bg-gray-500/20 text-gray-400";
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -46,27 +57,64 @@ export default function News() {
                       {item.source}
                     </span>
                   </div>
-                  {item.excerpt && (
-                    <p className="text-muted-foreground">{item.excerpt}</p>
-                  )}
+                  
+                  {/* Metadata */}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                    {item.author && (
+                      <div className="flex items-center gap-1">
+                        <User className="w-4 h-4" />
+                        <span>{item.author}</span>
+                      </div>
+                    )}
+                    {item.publishedAt && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDate(item.publishedAt)}</span>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
-                {item.sourceUrl && (
-                  <CardContent>
+                
+                <CardContent>
+                  {/* Full Content - Display the complete message body */}
+                  {item.content && (
+                    <div className="prose prose-sm max-w-none mb-4">
+                      <p className="whitespace-pre-wrap text-foreground">{item.content}</p>
+                    </div>
+                  )}
+                  
+                  {/* Fallback to excerpt if no content */}
+                  {!item.content && item.excerpt && (
+                    <p className="text-muted-foreground mb-4">{item.excerpt}</p>
+                  )}
+                  
+                  {/* Source Link */}
+                  {item.sourceUrl && (
                     <a
                       href={item.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline flex items-center gap-1"
+                      className="text-sm text-primary hover:underline flex items-center gap-1 mt-4"
                     >
-                      Read more <ExternalLink className="w-3 h-3" />
+                      View on {item.source === 'telegram' ? 'Telegram' : 'Source'} <ExternalLink className="w-3 h-3" />
                     </a>
-                  </CardContent>
-                )}
+                  )}
+                </CardContent>
               </Card>
             ))}
+            
+            {/* Empty State */}
+            {news && news.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">No news available yet. Check back soon!</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </main>
     </div>
   );
 }
+

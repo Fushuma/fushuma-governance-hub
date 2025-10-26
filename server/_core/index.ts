@@ -13,6 +13,7 @@ import { apiLimiter } from './rateLimit';
 import { metricsMiddleware, metricsHandler } from './metrics';
 import helmet from 'helmet';
 import compression from 'compression';
+import { telegramSync } from '../services/telegram-sync';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -40,6 +41,14 @@ async function startServer() {
     console.error('Environment validation failed. Please fix the issues above.');
     process.exit(1);
   }
+
+  // Initialize Telegram sync service
+  console.log('Initializing Telegram sync service...');
+  await telegramSync.initialize(
+    process.env.TELEGRAM_BOT_TOKEN,
+    true, // Enable auto-sync
+    300000 // 5 minutes interval
+  );
 
   const app = express();
   const server = createServer(app);

@@ -28,6 +28,7 @@ interface SyncResult {
 class TelegramSyncService {
   private botToken: string | null = null;
   private channelId: string = TELEGRAM_CHANNEL;
+  private channelUsername: string = 'FushumaChain';
   private autoSyncEnabled: boolean = false;
   private syncInterval: number = 300000; // 5 minutes
   private syncTimer: NodeJS.Timeout | null = null;
@@ -41,6 +42,8 @@ class TelegramSyncService {
     syncIntervalMs: number = 300000
   ): Promise<void> {
     this.botToken = botToken || process.env.TELEGRAM_BOT_TOKEN || null;
+    this.channelUsername = process.env.TELEGRAM_CHANNEL_USERNAME || 'FushumaChain';
+    this.channelId = process.env.TELEGRAM_CHANNEL_ID || '@FushumaChain';
     this.autoSyncEnabled = autoSync;
     this.syncInterval = syncIntervalMs;
 
@@ -63,33 +66,37 @@ class TelegramSyncService {
    * Initialize sync state in database
    */
   private async initializeSyncState(): Promise<void> {
-    const existing = await db.query.telegramSyncState.findFirst({
-      where: eq(telegramSyncState.channelId, this.channelId),
-    });
-
-    if (!existing) {
-      await db.insert(telegramSyncState).values({
-        channelId: this.channelId,
-        isActive: true,
+    try {
+      const existing = await db.query.telegramSyncState.findFirst({
+        where: eq(telegramSyncState.channelId, this.channelId),
       });
+
+      if (!existing) {
+        await db.insert(telegramSyncState).values({
+          channelId: this.channelId,
+          isActive: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing sync state:', error);
     }
   }
 
   /**
-   * Fetch messages from Telegram channel
-   * Note: This requires Telegram Bot API with proper permissions
+   * Fetch messages from Telegram channel using getUpdates
+   * This method captures channel posts if the bot is added as admin
    */
-  private async fetchMessages(limit: number = 10, offset?: string): Promise<TelegramMessage[]> {
+  private async fetchMessagesFromUpdates(limit: number = 10, offset?: number): Promise<TelegramMessage[]> {
     if (!this.botToken) {
       throw new Error('Telegram bot token not configured');
     }
 
     try {
-      // Using Telegram Bot API to get channel updates
       const url = `https://api.telegram.org/bot${this.botToken}/getUpdates`;
       const params = new URLSearchParams({
         limit: limit.toString(),
-        ...(offset && { offset }),
+        allowed_updates: JSON.stringify(['channel_post']),
+        ...(offset && { offset: offset.toString() }),
       });
 
       const response = await fetch(`${url}?${params}`);
@@ -99,7 +106,6 @@ class TelegramSyncService {
         throw new Error(`Telegram API error: ${data.description}`);
       }
 
-      // Parse messages
       const messages: TelegramMessage[] = [];
       for (const update of data.result) {
         if (update.channel_post) {
@@ -108,7 +114,7 @@ class TelegramSyncService {
             id: post.message_id.toString(),
             date: new Date(post.date * 1000),
             text: post.text || post.caption || '',
-            author: post.author_signature,
+            author: post.author_signature || 'Fushuma Team',
             media: post.photo || post.video ? [post.photo || post.video] : undefined,
             links: this.extractLinks(post.text || post.caption || ''),
           });
@@ -117,13 +123,49 @@ class TelegramSyncService {
 
       return messages;
     } catch (error) {
-      console.error('Error fetching Telegram messages:', error);
+      console.error('Error fetching Telegram messages via getUpdates:', error);
       throw error;
     }
   }
 
   /**
+   * Fetch messages from Telegram channel using direct channel access
+   * This uses the getChat and getChatHistory methods
+   */
+  private async fetchMessagesFromChannel(limit: number = 10): Promise<TelegramMessage[]> {
+    if (!this.botToken) {
+      throw new Error('Telegram bot token not configured');
+    }
+
+    try {
+      // First, get the chat info to get the chat ID
+      const chatUrl = `https://api.telegram.org/bot${this.botToken}/getChat`;
+      const chatParams = new URLSearchParams({
+        chat_id: this.channelId,
+      });
+
+      const chatResponse = await fetch(`${chatUrl}?${chatParams}`);
+      const chatData = await chatResponse.json();
+
+      if (!chatData.ok) {
+        console.error('Error getting chat info:', chatData.description);
+        // Fall back to getUpdates method
+        return await this.fetchMessagesFromUpdates(limit);
+      }
+
+      // Note: Bot API doesn't provide getChatHistory directly
+      // We need to use getUpdates for channel posts
+      return await this.fetchMessagesFromUpdates(limit);
+    } catch (error) {
+      console.error('Error fetching from channel:', error);
+      // Fall back to getUpdates
+      return await this.fetchMessagesFromUpdates(limit);
+    }
+  }
+
+  /**
    * Parse Telegram message into news article
+   * Now preserves the full message body as content
    */
   private parseMessage(message: TelegramMessage): {
     title: string;
@@ -138,10 +180,11 @@ class TelegramSyncService {
     // First line is usually the title
     const title = lines[0]?.trim() || 'Fushuma Update';
 
-    // Rest is content
-    const content = lines.slice(1).join('\n').trim();
+    // IMPORTANT: Use the FULL text as content, not just lines after the first
+    // This ensures the complete message body is stored
+    const content = text.trim();
 
-    // Create excerpt (first 200 chars)
+    // Create excerpt (first 200 chars of content)
     const excerpt = content.length > 200 
       ? content.substring(0, 200) + '...' 
       : content;
@@ -189,8 +232,10 @@ class TelegramSyncService {
         where: eq(telegramSyncState.channelId, this.channelId),
       });
 
-      // Fetch messages
-      const messages = await this.fetchMessages(limit, syncState?.lastMessageId || undefined);
+      // Fetch messages from channel
+      const messages = await this.fetchMessagesFromChannel(limit);
+
+      console.log(`Fetched ${messages.length} messages from Telegram`);
 
       for (const message of messages) {
         try {
@@ -200,16 +245,19 @@ class TelegramSyncService {
           });
 
           if (existing) {
+            console.log(`Message ${message.id} already exists, skipping`);
             continue; // Skip already synced messages
           }
 
-          // Parse message
+          // Parse message - this now includes the full body
           const parsed = this.parseMessage(message);
 
-          // Insert into database
+          console.log(`Syncing message ${message.id}: ${parsed.title.substring(0, 50)}...`);
+
+          // Insert into database with full content
           await db.insert(news).values({
             title: parsed.title,
-            content: parsed.content,
+            content: parsed.content, // Full message body
             excerpt: parsed.excerpt,
             author: message.author || 'Fushuma Team',
             publishedAt: message.date,
@@ -246,15 +294,21 @@ class TelegramSyncService {
       console.error('Error in Telegram sync:', error);
       
       // Update error in sync state
-      await db
-        .update(telegramSyncState)
-        .set({
-          lastError: error instanceof Error ? error.message : 'Unknown error',
-          errorCount: db.query.telegramSyncState.findFirst({
-            where: eq(telegramSyncState.channelId, this.channelId),
-          }).then(state => (state?.errorCount || 0) + 1),
-        })
-        .where(eq(telegramSyncState.channelId, this.channelId));
+      try {
+        const syncState = await db.query.telegramSyncState.findFirst({
+          where: eq(telegramSyncState.channelId, this.channelId),
+        });
+
+        await db
+          .update(telegramSyncState)
+          .set({
+            lastError: error instanceof Error ? error.message : 'Unknown error',
+            errorCount: (syncState?.errorCount || 0) + 1,
+          })
+          .where(eq(telegramSyncState.channelId, this.channelId));
+      } catch (updateError) {
+        console.error('Error updating sync state:', updateError);
+      }
 
       errors++;
     }
@@ -275,20 +329,34 @@ class TelegramSyncService {
     autoSyncEnabled: boolean;
     syncInterval: number;
   }> {
-    const syncState = await db.query.telegramSyncState.findFirst({
-      where: eq(telegramSyncState.channelId, this.channelId),
-    });
+    try {
+      const syncState = await db.query.telegramSyncState.findFirst({
+        where: eq(telegramSyncState.channelId, this.channelId),
+      });
 
-    return {
-      channelId: this.channelId,
-      lastSyncAt: syncState?.lastSyncAt || undefined,
-      messagesSynced: syncState?.messagesSynced || 0,
-      errorCount: syncState?.errorCount || 0,
-      lastError: syncState?.lastError || undefined,
-      isActive: syncState?.isActive || false,
-      autoSyncEnabled: this.autoSyncEnabled,
-      syncInterval: this.syncInterval,
-    };
+      return {
+        channelId: this.channelId,
+        lastSyncAt: syncState?.lastSyncAt || undefined,
+        messagesSynced: syncState?.messagesSynced || 0,
+        errorCount: syncState?.errorCount || 0,
+        lastError: syncState?.lastError || undefined,
+        isActive: syncState?.isActive || false,
+        autoSyncEnabled: this.autoSyncEnabled,
+        syncInterval: this.syncInterval,
+      };
+    } catch (error) {
+      console.error('Error getting sync status:', error);
+      return {
+        channelId: this.channelId,
+        lastSyncAt: undefined,
+        messagesSynced: 0,
+        errorCount: 0,
+        lastError: undefined,
+        isActive: false,
+        autoSyncEnabled: this.autoSyncEnabled,
+        syncInterval: this.syncInterval,
+      };
+    }
   }
 
   /**
