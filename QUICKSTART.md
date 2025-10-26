@@ -1,6 +1,6 @@
 # Fushuma Governance Hub - Quick Start Guide
 
-This is a condensed guide for experienced developers. For detailed instructions, see [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md).
+This is a condensed guide for experienced developers. For detailed instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Prerequisites
 
@@ -151,5 +151,5 @@ curl https://governance.fushuma.com/api/health
 - **Database connection failed**: Verify `DATABASE_URL` in `.env`
 - **SSL not working**: Run `sudo certbot renew` and check `sudo nginx -t`
 
-For detailed troubleshooting, see [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md).
+For detailed troubleshooting, see [DEPLOYMENT.md](DEPLOYMENT.md).
 

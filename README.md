@@ -234,7 +234,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discord**: [Join our Discord]
 - **Twitter**: [@FushumaChain]
 - **Email**: governance@fushuma.com
-- **Documentation**: See [MANUAL.md](MANUAL.md) for detailed user guide
+- **Documentation**:
+  - [MANUAL.md](MANUAL.md) - User guide
+  - [DEPLOYMENT.md](DEPLOYMENT.md) - Production deployment guide
+  - [QUICKSTART.md](QUICKSTART.md) - Quick start guide
+  - [PRODUCTION_ROADMAP.md](PRODUCTION_ROADMAP.md) - Roadmap and improvements
 
 ## 🗺️ Roadmap
 
