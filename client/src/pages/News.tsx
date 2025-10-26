@@ -48,7 +48,7 @@ export default function News() {
           </div>
         ) : (
           <div className="space-y-6">
-            {news?.map((item) => (
+            {news?.items?.map((item) => (
               <Card key={item.id} className="hover:border-primary/50 transition-all">
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
