@@ -1,4 +1,4 @@
-import { getDb } from '../db';
+import { db } from '../db';
 import { news, telegramSyncState } from '../../drizzle/schema-phase2';
 import { eq } from 'drizzle-orm';
 
@@ -73,7 +73,7 @@ class TelegramSyncService {
    */
   private async initializeSyncState(): Promise<void> {
     try {
-      const db = await getDb();
+      // Use synchronous db instance
       if (!db) return;
       
       const existing = await db.query.telegramSyncState.findFirst({
@@ -347,7 +347,7 @@ class TelegramSyncService {
 
     try {
       // Get last sync state
-      const db = await getDb();
+      // Use synchronous db instance
       if (!db) {
         console.warn('Database not available for Telegram sync');
         return { synced: 0, errors: 0 };
@@ -424,7 +424,7 @@ class TelegramSyncService {
       
       // Update error in sync state
       try {
-      const db = await getDb();
+      // Use synchronous db instance
       if (!db) return;
       
       const syncState = await db.query.telegramSyncState.findFirst({
@@ -462,7 +462,7 @@ class TelegramSyncService {
     syncInterval: number;
   }> {
     try {
-      const db = await getDb();
+      // Use synchronous db instance
       if (!db) {
         return {
           channelId: this.channelId,
