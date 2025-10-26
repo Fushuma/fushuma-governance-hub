@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { publicProcedure, router } from '../_core/trpc';
-import { db } from '../_core/db';
+import { getDb } from '../db';
 import { news } from '../../drizzle/schema-phase2';
 import { desc, eq, and, like, or } from 'drizzle-orm';
 import { telegramSync } from '../services/telegram-sync';
@@ -25,6 +25,15 @@ export const newsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
+        const db = await getDb();
+        if (!db) {
+          return {
+            items: [],
+            total: 0,
+            hasMore: false,
+          };
+        }
+        
         // Build query conditions
         const conditions = [];
         
@@ -83,6 +92,11 @@ export const newsRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error('Database not available');
+        }
+        
         const newsItem = await db.query.news.findFirst({
           where: eq(news.id, input.id),
         });
@@ -113,6 +127,9 @@ export const newsRouter = router({
    */
   getCategories: publicProcedure.query(async () => {
     try {
+      const db = await getDb();
+      if (!db) return [];
+      
       // Get unique categories with counts
       const items = await db.select().from(news);
       
@@ -140,6 +157,9 @@ export const newsRouter = router({
     .input(z.object({ limit: z.number().optional().default(20) }))
     .query(async ({ input }) => {
       try {
+        const db = await getDb();
+        if (!db) return [];
+        
         const items = await db.select().from(news);
         
         const tagCounts = items.reduce((acc, item) => {
@@ -215,6 +235,9 @@ export const newsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
+        const db = await getDb();
+        if (!db) return [];
+        
         const daysAgo = new Date();
         daysAgo.setDate(daysAgo.getDate() - input.days);
 
@@ -247,6 +270,9 @@ export const newsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
+        const db = await getDb();
+        if (!db) return [];
+        
         const searchTerm = `%${input.query}%`;
         
         const items = await db

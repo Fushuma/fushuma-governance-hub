@@ -1,4 +1,4 @@
-import { db } from '../_core/db';
+import { getDb } from '../db';
 import { news, telegramSyncState } from '../../drizzle/schema-phase2';
 import { eq } from 'drizzle-orm';
 
@@ -67,6 +67,9 @@ class TelegramSyncService {
    */
   private async initializeSyncState(): Promise<void> {
     try {
+      const db = await getDb();
+      if (!db) return;
+      
       const existing = await db.query.telegramSyncState.findFirst({
         where: eq(telegramSyncState.channelId, this.channelId),
       });
@@ -228,6 +231,12 @@ class TelegramSyncService {
 
     try {
       // Get last sync state
+      const db = await getDb();
+      if (!db) {
+        console.warn('Database not available for Telegram sync');
+        return { synced: 0, errors: 0 };
+      }
+      
       const syncState = await db.query.telegramSyncState.findFirst({
         where: eq(telegramSyncState.channelId, this.channelId),
       });
@@ -295,11 +304,14 @@ class TelegramSyncService {
       
       // Update error in sync state
       try {
-        const syncState = await db.query.telegramSyncState.findFirst({
-          where: eq(telegramSyncState.channelId, this.channelId),
-        });
+      const db = await getDb();
+      if (!db) return;
+      
+      const syncState = await db.query.telegramSyncState.findFirst({
+        where: eq(telegramSyncState.channelId, this.channelId),
+      });
 
-        await db
+      await db
           .update(telegramSyncState)
           .set({
             lastError: error instanceof Error ? error.message : 'Unknown error',
@@ -330,6 +342,20 @@ class TelegramSyncService {
     syncInterval: number;
   }> {
     try {
+      const db = await getDb();
+      if (!db) {
+        return {
+          channelId: this.channelId,
+          lastSyncAt: undefined,
+          messagesSynced: 0,
+          errorCount: 0,
+          lastError: undefined,
+          isActive: false,
+          autoSyncEnabled: this.autoSyncEnabled,
+          syncInterval: this.syncInterval,
+        };
+      }
+      
       const syncState = await db.query.telegramSyncState.findFirst({
         where: eq(telegramSyncState.channelId, this.channelId),
       });
