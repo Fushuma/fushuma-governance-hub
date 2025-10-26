@@ -32,7 +32,7 @@ export async function getDb() {
 }
 
 // Export synchronous db instance for services (assumes DB is already initialized)
-export const db = drizzle(process.env.DATABASE_URL || 'mysql://root:password@localhost:3306/fushuma_governance', { schema, mode: 'default' });
+export const db = drizzle(process.env.DATABASE_URL!, { schema, mode: 'default' });
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
