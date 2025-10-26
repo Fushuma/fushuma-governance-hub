@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { publicProcedure, router } from '../_core/trpc';
-import { getDb } from '../db';
+import { db } from '../db';
 import { news } from '../../drizzle/schema-phase2';
 import { desc, eq, and, like, or } from 'drizzle-orm';
 import { telegramSync } from '../services/telegram-sync';
@@ -25,7 +25,7 @@ export const newsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const db = await getDb();
+        // Use synchronous db instance
         if (!db) {
           return {
             items: [],
@@ -92,7 +92,7 @@ export const newsRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       try {
-        const db = await getDb();
+        // Use synchronous db instance
         if (!db) {
           throw new Error('Database not available');
         }
@@ -157,7 +157,7 @@ export const newsRouter = router({
     .input(z.object({ limit: z.number().optional().default(20) }))
     .query(async ({ input }) => {
       try {
-        const db = await getDb();
+        // Use synchronous db instance
         if (!db) return [];
         
         const items = await db.select().from(news);
@@ -235,7 +235,7 @@ export const newsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const db = await getDb();
+        // Use synchronous db instance
         if (!db) return [];
         
         const daysAgo = new Date();
@@ -270,7 +270,7 @@ export const newsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const db = await getDb();
+        // Use synchronous db instance
         if (!db) return [];
         
         const searchTerm = `%${input.query}%`;
