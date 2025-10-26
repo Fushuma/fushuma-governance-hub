@@ -5,10 +5,11 @@
  */
 
 import { config } from 'dotenv';
+import { resolve } from 'path';
 import { EnhancedGitHubGrantsSync } from '../server/services/github-sync-enhanced';
 
-// Load environment variables
-config();
+// Load environment variables from .env file
+config({ path: resolve(__dirname, '../.env') });
 
 async function main() {
   console.log('Starting GitHub grants sync test...\n');
