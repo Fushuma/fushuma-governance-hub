@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { DollarSign, Filter, ArrowUpDown } from "lucide-react";
 import { Link } from "wouter";
+import { GrantApplicationForm } from "@/components/GrantApplicationForm";
 
 type SortOption = "newest" | "oldest" | "most_comments";
 type StatusFilter = "all" | "approved" | "in_progress" | "review" | "completed" | "rejected";
@@ -16,6 +17,7 @@ export default function Grants() {
   const { data: grants, isLoading } = trpc.grants.list.useQuery();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,7 +68,7 @@ export default function Grants() {
             </p>
           </div>
           {isAuthenticated && (
-            <Button size="lg">
+            <Button size="lg" onClick={() => setShowApplicationForm(true)}>
               <DollarSign className="w-4 h-4 mr-2" />
               Apply for Grant
             </Button>
@@ -165,6 +167,11 @@ export default function Grants() {
           </div>
         )}
       </main>
+
+      <GrantApplicationForm 
+        open={showApplicationForm} 
+        onOpenChange={setShowApplicationForm} 
+      />
     </div>
   );
 }
