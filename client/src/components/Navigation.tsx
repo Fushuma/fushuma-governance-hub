@@ -3,10 +3,16 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { APP_TITLE } from "@/const";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Moon, Sun, Menu } from "lucide-react";
+import { Moon, Sun, Menu, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AuthModal } from "@/components/AuthModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Navigation() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -22,6 +28,12 @@ export default function Navigation() {
     { href: "/news", label: "Dojo News" },
     { href: "/ecosystem", label: "Ecosystem" },
     { href: "/community", label: "Community" },
+  ];
+
+  const defiLinks = [
+    { href: "/defi/swap", label: "Swap", icon: "🔄" },
+    { href: "/defi/liquidity", label: "Liquidity", icon: "💧" },
+    { href: "/defi/pools", label: "Pools", icon: "🏊" },
   ];
 
   return (
@@ -43,6 +55,26 @@ export default function Navigation() {
                   </a>
                 </Link>
               ))}
+              
+              {/* DeFi Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors outline-none">
+                  DeFi
+                  <ChevronDown className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {defiLinks.map((link) => (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link href={link.href}>
+                        <a className="flex items-center gap-2 w-full cursor-pointer">
+                          <span>{link.icon}</span>
+                          <span>{link.label}</span>
+                        </a>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -91,6 +123,7 @@ export default function Navigation() {
           </div>
         </div>
 
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 space-y-2 border-t border-border">
             {navLinks.map((link) => (
@@ -103,6 +136,21 @@ export default function Navigation() {
                 </a>
               </Link>
             ))}
+            
+            {/* DeFi Links in Mobile */}
+            <div className="pt-2 border-t border-border mt-2">
+              <div className="text-xs font-semibold text-muted-foreground mb-2 px-2">DeFi</div>
+              {defiLinks.map((link) => (
+                <Link key={link.href} href={link.href}>
+                  <a
+                    className="block py-2 pl-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.icon} {link.label}
+                  </a>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
