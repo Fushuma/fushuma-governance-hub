@@ -17,6 +17,9 @@ import Governance from "./pages/Governance";
 import Epochs from "./pages/Epochs";
 import Gauges from "./pages/Gauges";
 import NewsV2 from "./pages/NewsV2";
+import DefiSwap from "./pages/DefiSwap";
+import DefiLiquidity from "./pages/DefiLiquidity";
+import DefiPools from "./pages/DefiPools";
 
 function Router() {
   return (
@@ -34,6 +37,9 @@ function Router() {
       <Route path={"/epochs"} component={Epochs} />
       <Route path={"/gauges"} component={Gauges} />
       <Route path={"/news-v2"} component={NewsV2} />
+      <Route path={"/defi/swap"} component={DefiSwap} />
+      <Route path={"/defi/liquidity"} component={DefiLiquidity} />
+      <Route path={"/defi/pools"} component={DefiPools} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

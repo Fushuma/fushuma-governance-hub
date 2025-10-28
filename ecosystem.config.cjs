@@ -1,9 +1,10 @@
 module.exports = {
   apps: [
     {
-      name: 'fushuma-api',
-      script: 'tsx',
-      args: 'server/_core/index.ts',
+      name: 'fushuma-api-v2',
+      script: 'server/_core/index.ts',
+      interpreter: 'node',
+      interpreter_args: '--import tsx/esm',
       instances: process.env.NODE_ENV === 'production' ? 'max' : 1,
       exec_mode: process.env.NODE_ENV === 'production' ? 'cluster' : 'fork',
       watch: process.env.NODE_ENV !== 'production',
@@ -17,11 +18,11 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'development',
-        PORT: 3000,
+        PORT: 3001,
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 3000,
+        PORT: 3001,
       },
       error_file: './logs/api-error.log',
       out_file: './logs/api-out.log',
@@ -37,9 +38,10 @@ module.exports = {
       shutdown_with_message: true,
     },
     {
-      name: 'fushuma-indexer',
-      script: 'tsx',
-      args: 'server/services/indexer/index.ts',
+      name: 'fushuma-indexer-v2',
+      script: 'server/services/indexer/index.ts',
+      interpreter: 'node',
+      interpreter_args: '--import tsx/esm',
       instances: 1,
       exec_mode: 'fork',
       watch: false,
@@ -61,9 +63,10 @@ module.exports = {
       restart_delay: 5000,
     },
     {
-      name: 'fushuma-rates',
-      script: 'tsx',
-      args: 'server/services/rates/index.ts',
+      name: 'fushuma-rates-v2',
+      script: 'server/services/rates/index.ts',
+      interpreter: 'node',
+      interpreter_args: '--import tsx/esm',
       instances: 1,
       exec_mode: 'fork',
       watch: false,
